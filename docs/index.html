@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>D-IRT Explorer</title>
-  <meta name="description" content="Interactive demo of Distilled-Item Response Theory (D-IRT / GRM+): a graded response model with person-level response noise and acquiescence.">
+  <meta name="description" content="Interactive demo of how Distilled-Item Response Theory (D-IRT / GRM+) turns one person and one item into answer probabilities, with person-level response noise and acquiescence.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236246c9'/%3E%3Cpath d='M5 24 C11 24 12 8 16 8 S21 24 27 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <script>
@@ -21,12 +21,16 @@
       </span>
       <div>
         <h1>D-IRT Explorer</h1>
-        <p class="tagline">How response noise and acquiescence change what a questionnaire answer means</p>
+        <p class="tagline">How GRM+ turns one person and one item into answer probabilities</p>
       </div>
     </div>
     <nav class="top-actions">
-      <a class="btn ghost" href="#model">The model</a>
-      <button class="btn ghost" id="share" type="button" title="Copy a link to the current settings">Copy link</button>
+      <a class="btn ghost hide-phone" href="#model">The model</a>
+      <button class="btn ghost hide-phone" id="share" type="button" title="Copy a link to the current settings">Copy link</button>
+      <button class="btn ghost" id="reset" type="button" title="Reset all parameters">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>
+        <span class="hide-phone">Reset</span>
+      </button>
       <button class="btn icon" id="theme" type="button" aria-label="Switch colour theme" title="Switch colour theme">
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -34,164 +38,141 @@
     </nav>
   </header>
 
-  <div class="layout">
-    <aside class="controls" id="controls" aria-label="Model parameters">
-      <button class="drawer-handle" id="drawer-toggle" type="button" aria-expanded="false" aria-controls="controls">
-        <span class="grip" aria-hidden="true"></span>
-        <span class="drawer-label">All controls</span>
-      </button>
-
-      <section class="ctl-group" aria-labelledby="h-person">
-        <div class="ctl-head">
+  <main class="page">
+    <!-- PERSON: drives everything -->
+    <section class="person-bar" id="person" aria-labelledby="h-person">
+      <div class="group-id">
+        <span class="gicon person" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg>
+        </span>
+        <div>
           <h2 id="h-person">Person</h2>
-          <span class="chip-note">varies between respondents</span>
+          <p class="group-sub">who is answering</p>
         </div>
-        <div class="presets" id="presets" role="group" aria-label="Respondent presets"></div>
-        <div id="person-sliders"></div>
-      </section>
+      </div>
+      <div class="person-sliders" id="person-sliders"></div>
+    </section>
 
-      <section class="ctl-group" aria-labelledby="h-item">
-        <div class="ctl-head">
-          <h2 id="h-item">Item</h2>
-          <span class="chip-note">estimated first, then held fixed</span>
-        </div>
-        <div class="ctl">
-          <div class="ctl-row">
-            <span class="ctl-label" id="lbl-K"><b>K</b> answer options</span>
-          </div>
-          <div class="seg" id="K-seg" role="radiogroup" aria-labelledby="lbl-K"></div>
-          <p class="hint">Number of ordered response categories (e.g. 5 for a 5-point Likert scale).</p>
-        </div>
-        <div id="item-sliders"></div>
-        <div class="ctl" id="b-block">
-          <div class="ctl-row">
-            <span class="ctl-label">Thresholds <b>b</b><sub>1</sub>…<b>b</b><sub>K−1</sub></span>
-          </div>
-          <div id="b-sliders"></div>
-          <p class="hint">Trait levels at which an answer in the next category or higher becomes more likely than not (for σ = 1). They stay in order: dragging one pushes its neighbours.</p>
-        </div>
-        <div class="ctl">
-          <label class="switch">
-            <input type="checkbox" id="rev">
-            <span class="track" aria-hidden="true"><span class="knob"></span></span>
-            <span class="ctl-label">Reverse-keyed item</span>
-          </label>
-          <p class="hint">Worded against the trait (e.g. “I rarely worry”): more of the trait means lower answers.</p>
-        </div>
-        <button class="btn ghost wide" id="reset" type="button">Reset everything</button>
-      </section>
-    </aside>
-
-    <main class="panels">
-      <section class="card" id="panel-cat" aria-labelledby="h-cat">
-        <header class="card-head">
-          <span class="step">1</span>
-          <div>
-            <h2 id="h-cat">Which answer will this person give?</h2>
-            <p class="lede">Probability of each answer option for one item, for the person set in the controls.</p>
-          </div>
-        </header>
-        <div class="legend" id="legend-cat"></div>
-        <div class="chart" id="chart-cat"></div>
-        <p class="readout" id="readout-cat" aria-live="polite"></p>
-        <details class="numbers">
-          <summary>Show the model step by step</summary>
-          <div class="table-wrap"><table id="steps-table"></table></div>
-        </details>
-      </section>
-
-      <section class="card" id="panel-curve" aria-labelledby="h-curve">
-        <header class="card-head">
-          <span class="step">2</span>
-          <div>
-            <h2 id="h-curve">The same item across the whole trait range</h2>
-            <p class="lede">How answers to this item change as the trait ψ goes from low to high.</p>
-          </div>
-        </header>
-        <div class="card-tools">
-          <div class="seg small" id="curve-seg" role="radiogroup" aria-label="Curve type"></div>
-          <div class="legend" id="legend-curve"></div>
-        </div>
-        <div class="chart" id="chart-curve"></div>
-        <p class="readout" id="readout-curve"></p>
-      </section>
-
-      <section class="card span-2" id="panel-q" aria-labelledby="h-q">
-        <header class="card-head">
-          <span class="step">3</span>
-          <div>
-            <h2 id="h-q">What it does to a questionnaire’s sum score</h2>
-            <p class="lede">A simulated <span id="q-n-text">20</span>-item questionnaire answered by 500 respondents whose true trait is known. Every respondent shares the noise σ and acquiescence ζ set in the controls; reverse-keyed items are re-scored before summing.</p>
-          </div>
-        </header>
-        <div class="q-tools">
-          <div class="ctl compact">
-            <div class="ctl-row"><span class="ctl-label" id="lbl-n">Items</span></div>
-            <div class="seg small" id="n-seg" role="radiogroup" aria-labelledby="lbl-n"></div>
-          </div>
-          <div class="ctl compact grow" id="nrev-slot"></div>
-          <button class="btn" id="resample" type="button">New sample</button>
-        </div>
-        <div class="stats" id="stats"></div>
-        <div class="q-grid">
-          <figure class="q-fig">
-            <div class="legend" id="legend-scatter"></div>
-            <div class="chart" id="chart-scatter"></div>
-            <figcaption>Each dot is one simulated respondent. Grey: answers generated by the standard GRM (σ = 1, ζ = 0). Colour: the same respondents, same random draws, under the current σ and ζ.</figcaption>
-          </figure>
-          <figure class="q-fig">
-            <div class="legend" id="legend-items"></div>
-            <div class="items" id="items"></div>
-            <figcaption>Answer probabilities on every item for the person set in the controls (ψ = <span id="items-psi">0</span>), on the raw answer scale before re-scoring. <span class="rev-badge">R</span> marks reverse-keyed items.</figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section class="card span-2 prose" id="model" aria-labelledby="h-model">
-        <header class="card-head">
-          <span class="step">∑</span>
-          <div>
-            <h2 id="h-model">The model in three steps</h2>
-            <p class="lede">D-IRT (also written GRM+) keeps the graded response model’s item parameters and adds two person parameters.</p>
-          </div>
-        </header>
-        <div class="steps">
-          <div class="mstep">
-            <h3><span class="num">1</span>Graded response layer, with noise σ</h3>
-            <div class="eqs"><div class="eq">P(<i>y</i> ≥ <i>k</i>) = logit<sup>−1</sup>( <i>a</i> (<i>ψ</i> − <i>b</i><sub><i>k</i>−1</sub>) / <i>σ</i> ),&nbsp; <i>k</i> = 2,…,<i>K</i></div></div>
-            <p>with P(<i>y</i> ≥ 1) = 1 and P(<i>y</i> ≥ <i>K</i>+1) = 0. Category probabilities are the differences between neighbouring cumulative probabilities (negatives clamped to 0, then renormalised). Dividing the logit by <i>σ</i> flattens every item for a noisy respondent and sharpens it for a consistent one; <i>σ</i> = 1 is the ordinary GRM.</p>
-          </div>
-          <div class="mstep no-eq">
-            <h3><span class="num">2</span>Reverse-keyed items</h3>
-            <p>For an item worded against the trait, the probability vector from step 1 is reversed, so that its categories are again ordered from “disagree” to “agree” on the raw response scale.</p>
-          </div>
-          <div class="mstep">
-            <h3><span class="num">3</span>Choice layer, with acquiescence ζ</h3>
-            <div class="eqs">
-              <div class="eq"><i>m</i><sub><i>k</i></sub> = log( P<sub>GRM</sub>(<i>k</i>) + 10<sup>−6</sup> )</div>
-              <div class="eq"><i>x</i><sub><i>k</i></sub> = 2(<i>k</i> − <i>k</i><sub>mid</sub>) / (<i>K</i> − 1),&emsp; <i>k</i><sub>mid</sub> = (<i>K</i>+1)/2</div>
-              <div class="eq"><i>v</i><sub><i>k</i></sub> = <i>m</i><sub><i>k</i></sub> + <i>ζ</i> · <i>x</i><sub><i>k</i></sub>,&emsp; P(<i>y</i> = <i>k</i>) = softmax(<i>v</i>)<sub><i>k</i></sub></div>
+    <!-- ITEM: controls next to the plots they drive -->
+    <section class="item-section" aria-labelledby="h-item">
+      <div class="item-grid">
+        <aside class="item-controls" aria-labelledby="h-item">
+          <div class="group-id">
+            <span class="gicon item" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+            </span>
+            <div>
+              <h2 id="h-item">Item</h2>
+              <p class="group-sub">what is being answered</p>
             </div>
-            <p>The log-probabilities act as “choice values”. Acquiescence adds a linear tilt that runs from −<i>ζ</i> at the lowest option to +<i>ζ</i> at the highest. Because it is applied to the raw answer scale after step 2, it pulls toward agreement on every item, including reverse-keyed ones: <i>ζ</i> is not multiplied by the item’s direction.</p>
+            <button class="btn small item-toggle" id="item-toggle" type="button" aria-expanded="false" aria-controls="item-body">Edit item</button>
           </div>
+          <div class="item-body" id="item-body">
+            <div class="ctl">
+              <div class="ctl-row"><span class="ctl-label" id="lbl-K"><span class="sym">K</span><span class="name">answer options</span></span></div>
+              <div class="seg" id="K-seg" role="radiogroup" aria-labelledby="lbl-K"></div>
+              <p class="hint">Number of answer options.</p>
+            </div>
+            <div id="item-sliders"></div>
+            <div class="ctl">
+              <div class="ctl-row"><span class="ctl-label"><span class="sym">b</span><span class="name">thresholds</span></span></div>
+              <div id="b-sliders"></div>
+              <p class="hint">Trait levels where each next answer becomes more likely.</p>
+            </div>
+            <div class="ctl">
+              <label class="switch">
+                <input type="checkbox" id="rev">
+                <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                <span class="ctl-label"><span class="name">Reverse-keyed</span></span>
+              </label>
+              <p class="hint">Worded against the trait, e.g. “I rarely worry”.</p>
+            </div>
+          </div>
+        </aside>
+
+        <div class="plots">
+          <section class="card" id="panel-cat" aria-labelledby="h-cat">
+            <header class="card-head">
+              <span class="step">1</span>
+              <h2 id="h-cat">Which answer will this person give?</h2>
+            </header>
+            <div class="chart" id="chart-cat"></div>
+            <p class="readout" id="readout-cat" aria-live="polite"></p>
+            <button class="steps-toggle" id="steps-toggle" type="button" aria-expanded="false" aria-controls="steps-body">
+              <span class="st-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h7"/></svg>
+              </span>
+              <span class="st-text">
+                <b>Show the model step by step</b>
+                <span>How these probabilities are computed from ψ, σ, ζ and the item</span>
+              </span>
+              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="steps-body" id="steps-body" hidden>
+              <div class="table-wrap"><table id="steps-table"></table></div>
+            </div>
+          </section>
+
+          <section class="card" id="panel-curve" aria-labelledby="h-curve">
+            <header class="card-head">
+              <span class="step">2</span>
+              <h2 id="h-curve">The same item across the trait range</h2>
+            </header>
+            <div class="card-tools">
+              <div class="seg small" id="curve-seg" role="radiogroup" aria-label="Curve type"></div>
+              <div class="legend" id="legend-curve"></div>
+            </div>
+            <div class="chart" id="chart-curve"></div>
+            <p class="readout" id="readout-curve"></p>
+          </section>
         </div>
-        <div class="callouts">
-          <div class="callout">
-            <h3>How the parameters are estimated</h3>
-            <p>Item parameters (<i>a</i>, <i>b</i>) are estimated first with a standard GRM (the R package <code>mirt</code>) and then held fixed. Each person’s <i>ψ</i>, <i>σ</i> and <i>ζ</i> are then estimated in Stan, with priors <i>ψ</i> ~ N(0, 1), <i>ζ</i> ~ N(0, 1) and <i>σ</i> ~ LogNormal(0, 1).</p>
-          </div>
-          <div class="callout">
-            <h3>Things to try</h3>
-            <ul>
-              <li>Set ζ to +1.5 with no reverse-keyed items, then add some: the sum-score shift shrinks, but the item answers stay just as distorted.</li>
-              <li>Raise σ: extreme respondents drift toward the middle of the sum-score range and the correlation with the true trait drops.</li>
-              <li>Make σ small with a high <i>a</i>: the item behaves almost like a step function of ψ.</li>
-            </ul>
-          </div>
+      </div>
+    </section>
+
+    <section class="card prose" id="model" aria-labelledby="h-model">
+      <header class="card-head">
+        <span class="step">∑</span>
+        <div>
+          <h2 id="h-model">The model in three steps</h2>
+          <p class="lede">D-IRT (also written GRM+) keeps the graded response model’s item parameters and adds two person parameters.</p>
         </div>
-      </section>
-    </main>
-  </div>
+      </header>
+      <div class="steps">
+        <div class="mstep">
+          <h3><span class="num">1</span>Graded response layer, with noise σ</h3>
+          <div class="eqs"><div class="eq">P(<i>y</i> ≥ <i>k</i>) = logit<sup>−1</sup>( <i>a</i> (<i>ψ</i> − <i>b</i><sub><i>k</i>−1</sub>) / <i>σ</i> ),&nbsp; <i>k</i> = 2,…,<i>K</i></div></div>
+          <p>with P(<i>y</i> ≥ 1) = 1 and P(<i>y</i> ≥ <i>K</i>+1) = 0. Category probabilities are the differences between neighbouring cumulative probabilities (negatives clamped to 0, then renormalised). Dividing the logit by <i>σ</i> flattens every item for a noisy respondent and sharpens it for a consistent one; <i>σ</i> = 1 is the ordinary GRM.</p>
+        </div>
+        <div class="mstep no-eq">
+          <h3><span class="num">2</span>Reverse-keyed items</h3>
+          <p>For an item worded against the trait, the probability vector from step 1 is reversed, so that its categories are again ordered from “disagree” to “agree” on the raw response scale.</p>
+        </div>
+        <div class="mstep">
+          <h3><span class="num">3</span>Choice layer, with acquiescence ζ</h3>
+          <div class="eqs">
+            <div class="eq"><i>m</i><sub><i>k</i></sub> = log( P<sub>GRM</sub>(<i>k</i>) + 10<sup>−6</sup> )</div>
+            <div class="eq"><i>x</i><sub><i>k</i></sub> = 2(<i>k</i> − <i>k</i><sub>mid</sub>) / (<i>K</i> − 1),&emsp; <i>k</i><sub>mid</sub> = (<i>K</i>+1)/2</div>
+            <div class="eq"><i>v</i><sub><i>k</i></sub> = <i>m</i><sub><i>k</i></sub> + <i>ζ</i> · <i>x</i><sub><i>k</i></sub>,&emsp; P(<i>y</i> = <i>k</i>) = softmax(<i>v</i>)<sub><i>k</i></sub></div>
+          </div>
+          <p>The log-probabilities act as “choice values”. Acquiescence adds a linear tilt that runs from −<i>ζ</i> at the lowest option to +<i>ζ</i> at the highest. Because it is applied to the raw answer scale after step 2, it pulls toward agreement on every item, including reverse-keyed ones: <i>ζ</i> is not multiplied by the item’s direction.</p>
+        </div>
+      </div>
+      <div class="callouts">
+        <div class="callout">
+          <h3>How the parameters are estimated</h3>
+          <p>Item parameters (<i>a</i>, <i>b</i>) are estimated first with a standard GRM (the R package <code>mirt</code>) and then held fixed. Each person’s <i>ψ</i>, <i>σ</i> and <i>ζ</i> are then estimated in Stan, with priors <i>ψ</i> ~ N(0, 1), <i>ζ</i> ~ N(0, 1) and <i>σ</i> ~ LogNormal(0, 1).</p>
+        </div>
+        <div class="callout">
+          <h3>Things to try</h3>
+          <ul>
+            <li>Raise σ: the bars even out and the curve in panel 2 gets shallower.</li>
+            <li>Lower σ with a high <i>a</i>: the item behaves almost like a step function of ψ.</li>
+            <li>Set ζ to +1.5, then make the item reverse-keyed: answers still lean toward “agree”.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <footer class="foot">
     <p>Companion to the manuscript introducing Distilled-Item Response Theory (D-IRT). Everything runs in your browser: no cookies, no tracking, no data leaves this page.

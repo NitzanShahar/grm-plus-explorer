@@ -16,9 +16,15 @@
     return out;
   }
   function defaults() {
-    return { psi: 0.5, sigma: 1, zeta: 0, K: 5, a: 1.6, b: defaultThresholds(5), rev: false, curve: 'expected' };
+    return { psi: 0.5, sigma: 1, zeta: 0, K: 5, a: 1.6, b: defaultThresholds(5), rev: false, view: 'bars' };
   }
   var S = defaults();
+
+  var VIEWS = [
+    { id: 'bars',     label: 'Which answer?',      title: 'Which answer will this person give?' },
+    { id: 'expected', label: 'Expected answer',    title: 'Expected answer across the trait range' },
+    { id: 'cats',     label: 'Each option',        title: 'Each answer option across the trait range' }
+  ];
 
   // ---------------------------------------------------------------- helpers
   function round2(x) { return Math.round(x * 100) / 100; }
@@ -188,11 +194,11 @@
     rev.addEventListener('change', function () { S.rev = rev.checked; changed(); });
     syncers.push(function () { rev.checked = S.rev; });
 
-    segmented($('curve-seg'), [{ label: 'Expected answer', value: 'expected' }, { label: 'Each option', value: 'cats' }],
-      function () { return S.curve; }, function (v) { S.curve = v; });
+    segmented($('view-seg'), VIEWS.map(function (v) { return { label: v.label, value: v.id }; }),
+      function () { return S.view; }, function (v) { S.view = v; });
 
     $('reset').addEventListener('click', function () {
-      var keepCurve = S.curve; S = defaults(); S.curve = keepCurve;
+      var keepView = S.view; S = defaults(); S.view = keepView;
       buildThresholds(); sync(); changed();
     });
 
@@ -241,8 +247,10 @@
 
   function render() {
     readColours();
-    renderCategories();
-    renderCurves();
+    var v = VIEWS.filter(function (x) { return x.id === S.view; })[0] || VIEWS[0];
+    $('h-plot').textContent = v.title;
+    if (S.view === 'bars') renderCategories(); else renderCurves();
+    renderStepsTable(D.dirt(item(), person()), S.K);
   }
 
   function chartSize(id, hDesktop, hPhone) {
@@ -274,12 +282,13 @@
     var K = S.K, cols = catColours(K);
     var full = D.dirt(item(), person()), p = full.p;
 
-    var sz = chartSize('chart-cat', 280, 240);
+    $('legend-plot').innerHTML = '';
+    var sz = chartSize('chart', 360, 260);
     var svg = freshSvg(sz, 'Bar chart of the probability of each of ' + K + ' answer options');
     var m = { l: 40, r: 8, t: 22, b: 44 };
     var x0 = m.l, x1 = sz.w - m.r, y = lin(0, 1, sz.h - m.b, m.t);
     yAxis(svg, y, [0, 0.25, 0.5, 0.75, 1], x0, x1, function (t) { return Math.round(t * 100) + '%'; });
-    var slot = (x1 - x0) / K, bw = Math.min(64, slot * 0.62);
+    var slot = (x1 - x0) / K, bw = Math.min(96, slot * 0.6);
     for (var k = 0; k < K; k++) {
       var cx = x0 + slot * (k + 0.5);
       s('rect', { x: cx - bw / 2, y: y(p[k]), width: bw, height: Math.max(0, y(0) - y(p[k])), rx: 4, fill: cols[k] }, svg);
@@ -290,8 +299,7 @@
     txt(svg, x0 + slot * 0.5, y(0) + 34, 'disagree', { 'text-anchor': slot < 70 ? 'start' : 'middle', 'font-size': 11, fill: C['ink-3'] });
     txt(svg, x1 - slot * 0.5, y(0) + 34, 'agree', { 'text-anchor': slot < 70 ? 'end' : 'middle', 'font-size': 11, fill: C['ink-3'] });
 
-    $('readout-cat').innerHTML = 'Expected answer <b>' + fmt(D.expected(p) + 1) + '</b> on the 1–' + K + ' scale.';
-    renderStepsTable(full, K);
+    $('readout').innerHTML = 'Expected answer <b>' + fmt(D.expected(p) + 1) + '</b> on the 1–' + K + ' scale.';
   }
 
   function renderStepsTable(full, K) {
@@ -324,10 +332,10 @@
       grid.push(psi);
       cur.push(D.probs(it, { psi: psi, sigma: S.sigma, zeta: S.zeta }));
     }
-    var sz = chartSize('chart-curve', 280, 240);
+    var sz = chartSize('chart', 360, 260);
     var m = { l: 40, r: 10, t: 14, b: 40 };
     var x = lin(PSI_MIN, PSI_MAX, m.l, sz.w - m.r), svg, c;
-    if (S.curve === 'expected') {
+    if (S.view === 'expected') {
       svg = freshSvg(sz, 'Expected answer to the item as a function of the trait');
       var y = lin(1, K, sz.h - m.b, m.t), yt = [];
       for (var k = 1; k <= K; k++) yt.push(k);
@@ -337,7 +345,7 @@
         fill: 'none', stroke: C.curve, 'stroke-width': 3, 'stroke-linejoin': 'round' }, svg);
       psiMarker(svg, x(S.psi), m.t, sz.h - m.b);
       s('circle', { cx: x(S.psi), cy: y(D.expected(D.probs(it, person())) + 1), r: 5.5, fill: C.person, stroke: C.surface, 'stroke-width': 2 }, svg);
-      $('legend-curve').innerHTML = '';
+      $('legend-plot').innerHTML = '';
     } else {
       svg = freshSvg(sz, 'Probability of each answer option as a function of the trait');
       var y2 = lin(0, 1, sz.h - m.b, m.t);
@@ -350,13 +358,13 @@
       psiMarker(svg, x(S.psi), m.t, sz.h - m.b);
       var keys = [];
       for (c = 0; c < K; c++) keys.push([cols[c], String(c + 1)]);
-      setLegend('legend-curve', keys);
+      setLegend('legend-plot', keys);
     }
     s('line', { x1: m.l, x2: sz.w - m.r, y1: sz.h - m.b, y2: sz.h - m.b, stroke: C['rule-2'] }, svg);
     for (var t = -3; t <= 3; t++) txt(svg, x(t), sz.h - m.b + 16, fmt(t, 0), { 'text-anchor': 'middle', 'font-size': 11, fill: C['ink-3'] });
     txt(svg, (m.l + sz.w - m.r) / 2, sz.h - 6, 'trait ψ', { 'text-anchor': 'middle', 'font-size': 11.5, fill: C['ink-2'], 'font-style': 'italic' });
 
-    $('readout-curve').innerHTML = (S.rev ? 'Reverse-keyed: higher trait gives lower answers. ' : '') +
+    $('readout').innerHTML = (S.rev ? 'Reverse-keyed: higher trait gives lower answers. ' : '') +
       'Teal ticks mark the thresholds <i>b</i>; the dotted line is the person’s ψ.';
   }
   function thresholdTicks(svg, x, yBase) {
@@ -375,7 +383,7 @@
     clearTimeout(hashTimer);
     hashTimer = setTimeout(function () {
       var q = 'psi=' + S.psi + '&sigma=' + S.sigma + '&zeta=' + S.zeta + '&K=' + S.K + '&a=' + S.a +
-        '&b=' + S.b.join(',') + '&rev=' + (S.rev ? 1 : 0) + '&view=' + S.curve;
+        '&b=' + S.b.join(',') + '&rev=' + (S.rev ? 1 : 0) + '&view=' + S.view;
       try { history.replaceState(null, '', '#' + q); } catch (e) {}
     }, 250);
   }
@@ -396,7 +404,7 @@
       if (b.length === S.K - 1 && b.every(isFinite)) S.b = b.map(function (x) { return clamp(x, -3, 3); }).sort(function (x, y) { return x - y; });
     }
     if (p.rev != null) S.rev = p.rev === '1';
-    if (p.view === 'cats' || p.view === 'expected') S.curve = p.view;
+    if (VIEWS.some(function (x) { return x.id === p.view; })) S.view = p.view;
   }
 
   // ---------------------------------------------------------------- chrome
@@ -455,7 +463,7 @@
       new ResizeObserver(function (entries) {
         var w = Math.round(entries[0].contentRect.width);
         if (w !== lastW) { lastW = w; changed(); }
-      }).observe(document.querySelector('.plots'));
+      }).observe($('panel-plot'));
     } else {
       window.addEventListener('resize', changed);
     }

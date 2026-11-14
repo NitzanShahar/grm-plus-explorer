@@ -39,94 +39,79 @@
   </header>
 
   <main class="page">
-    <!-- PERSON: drives everything -->
-    <section class="person-bar" id="person" aria-labelledby="h-person">
-      <div class="group-id">
-        <span class="gicon person" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg>
-        </span>
-        <div>
-          <h2 id="h-person">Person</h2>
-          <p class="group-sub">who is answering</p>
-        </div>
-      </div>
-      <div class="person-sliders" id="person-sliders"></div>
-    </section>
-
-    <!-- ITEM: controls next to the plots they drive -->
-    <section class="item-section" aria-labelledby="h-item">
-      <div class="item-grid">
-        <aside class="item-controls" aria-labelledby="h-item">
-          <div class="group-id">
-            <span class="gicon item" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-            </span>
-            <div>
-              <h2 id="h-item">Item</h2>
-              <p class="group-sub">what is being answered</p>
-            </div>
-            <button class="btn small item-toggle" id="item-toggle" type="button" aria-expanded="false" aria-controls="item-body">Edit item</button>
+    <section class="workspace" aria-label="Model parameters and plot">
+      <!-- PERSON -->
+      <aside class="ctl-card person-card" id="person" aria-labelledby="h-person">
+        <div class="group-id">
+          <span class="gicon person" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg>
+          </span>
+          <div>
+            <h2 id="h-person">Person</h2>
+            <p class="group-sub">who is answering</p>
           </div>
-          <div class="item-body" id="item-body">
-            <div class="ctl">
-              <div class="ctl-row"><span class="ctl-label" id="lbl-K"><span class="sym">K</span><span class="name">answer options</span></span></div>
-              <div class="seg" id="K-seg" role="radiogroup" aria-labelledby="lbl-K"></div>
-              <p class="hint">Number of answer options.</p>
-            </div>
-            <div id="item-sliders"></div>
-            <div class="ctl">
-              <div class="ctl-row"><span class="ctl-label"><span class="sym">b</span><span class="name">thresholds</span></span></div>
-              <div id="b-sliders"></div>
-              <p class="hint">Trait levels where each next answer becomes more likely.</p>
-            </div>
-            <div class="ctl">
-              <label class="switch">
-                <input type="checkbox" id="rev">
-                <span class="track" aria-hidden="true"><span class="knob"></span></span>
-                <span class="ctl-label"><span class="name">Reverse-keyed</span></span>
-              </label>
-              <p class="hint">Worded against the trait, e.g. “I rarely worry”.</p>
-            </div>
-          </div>
-        </aside>
-
-        <div class="plots">
-          <section class="card" id="panel-cat" aria-labelledby="h-cat">
-            <header class="card-head">
-              <span class="step">1</span>
-              <h2 id="h-cat">Which answer will this person give?</h2>
-            </header>
-            <div class="chart" id="chart-cat"></div>
-            <p class="readout" id="readout-cat" aria-live="polite"></p>
-            <button class="steps-toggle" id="steps-toggle" type="button" aria-expanded="false" aria-controls="steps-body">
-              <span class="st-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h7"/></svg>
-              </span>
-              <span class="st-text">
-                <b>Show the model step by step</b>
-                <span>How these probabilities are computed from ψ, σ, ζ and the item</span>
-              </span>
-              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <div class="steps-body" id="steps-body" hidden>
-              <div class="table-wrap"><table id="steps-table"></table></div>
-            </div>
-          </section>
-
-          <section class="card" id="panel-curve" aria-labelledby="h-curve">
-            <header class="card-head">
-              <span class="step">2</span>
-              <h2 id="h-curve">The same item across the trait range</h2>
-            </header>
-            <div class="card-tools">
-              <div class="seg small" id="curve-seg" role="radiogroup" aria-label="Curve type"></div>
-              <div class="legend" id="legend-curve"></div>
-            </div>
-            <div class="chart" id="chart-curve"></div>
-            <p class="readout" id="readout-curve"></p>
-          </section>
         </div>
-      </div>
+        <div class="person-sliders" id="person-sliders"></div>
+      </aside>
+
+      <!-- ITEM -->
+      <aside class="ctl-card item-controls" aria-labelledby="h-item">
+        <div class="group-id">
+          <span class="gicon item" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+          </span>
+          <div>
+            <h2 id="h-item">Item</h2>
+            <p class="group-sub">what is being answered</p>
+          </div>
+          <button class="btn small item-toggle" id="item-toggle" type="button" aria-expanded="false" aria-controls="item-body">Edit item</button>
+        </div>
+        <div class="item-body" id="item-body">
+          <div class="ctl">
+            <div class="ctl-row"><span class="ctl-label" id="lbl-K"><span class="sym">K</span><span class="name">answer options</span></span></div>
+            <div class="seg" id="K-seg" role="radiogroup" aria-labelledby="lbl-K"></div>
+            <p class="hint">Number of answer options.</p>
+          </div>
+          <div id="item-sliders"></div>
+          <div class="ctl">
+            <div class="ctl-row"><span class="ctl-label"><span class="sym">b</span><span class="name">thresholds</span></span></div>
+            <div id="b-sliders"></div>
+            <p class="hint">Trait levels where each next answer becomes more likely.</p>
+          </div>
+          <div class="ctl">
+            <label class="switch">
+              <input type="checkbox" id="rev">
+              <span class="track" aria-hidden="true"><span class="knob"></span></span>
+              <span class="ctl-label"><span class="name">Reverse-keyed</span></span>
+            </label>
+            <p class="hint">Worded against the trait, e.g. “I rarely worry”.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- PLOT: one card, three views -->
+      <section class="card plot-card" id="panel-plot" aria-labelledby="h-plot">
+        <div class="view-seg seg" id="view-seg" role="radiogroup" aria-label="Plot type"></div>
+        <header class="plot-head">
+          <h2 id="h-plot"></h2>
+          <div class="legend" id="legend-plot"></div>
+        </header>
+        <div class="chart" id="chart"></div>
+        <p class="readout" id="readout" aria-live="polite"></p>
+        <button class="steps-toggle" id="steps-toggle" type="button" aria-expanded="false" aria-controls="steps-body">
+          <span class="st-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h7"/></svg>
+          </span>
+          <span class="st-text">
+            <b>Show the model step by step</b>
+            <span>How this person’s answer probabilities are computed from ψ, σ, ζ and the item</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="steps-body" id="steps-body" hidden>
+          <div class="table-wrap"><table id="steps-table"></table></div>
+        </div>
+      </section>
     </section>
 
     <section class="card prose" id="model" aria-labelledby="h-model">
@@ -165,7 +150,7 @@
         <div class="callout">
           <h3>Things to try</h3>
           <ul>
-            <li>Raise σ: the bars even out and the curve in panel 2 gets shallower.</li>
+            <li>Raise σ: the bars even out and the curves across ψ get shallower.</li>
             <li>Lower σ with a high <i>a</i>: the item behaves almost like a step function of ψ.</li>
             <li>Set ζ to +1.5, then make the item reverse-keyed: answers still lean toward “agree”.</li>
           </ul>

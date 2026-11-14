@@ -151,37 +151,34 @@ code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); 
 .group-id h2 { font-size: 16px; font-weight: 700; }
 .group-sub { font-size: 12.5px; color: var(--ink-3); line-height: 1.3; }
 
-/* ---------- person bar ---------- */
-.person-bar {
-  --sl: var(--person);
-  position: sticky; top: 59px; z-index: 20;
-  display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-top: 3px solid var(--person);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 14px 22px 12px;
+/* ---------- workspace: person card | item card | plot ---------- */
+.workspace {
+  display: grid;
+  grid-template-columns: 280px 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
 }
-.person-sliders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
-.person-sliders .ctl { margin-bottom: 0; }
-
-/* ---------- item section ---------- */
-.item-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; }
-.item-controls {
-  --sl: var(--item);
+.ctl-card {
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--item);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px 18px 6px;
 }
-.item-controls .group-id { margin-bottom: 14px; }
+.ctl-card .group-id { margin-bottom: 14px; }
+.person-card { --sl: var(--person); border-top: 3px solid var(--person); }
+.item-controls { --sl: var(--item); border-top: 3px solid var(--item); }
 .item-toggle { display: none; margin-left: auto; }
-.plots { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; min-width: 0; }
-@media (max-width: 1280px) {
-  .plots { grid-template-columns: minmax(0, 1fr); }
+
+.plot-card { padding-top: 14px; }
+.view-seg { display: flex; width: 100%; margin: 0 0 14px; }
+.view-seg button { flex: 1 1 0; padding: 7px 10px; }
+.plot-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 8px; }
+.plot-head h2 { font-size: 17px; font-weight: 700; line-height: 1.3; }
+
+@media (max-width: 1200px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .plot-card { grid-column: 1 / -1; grid-row: 1; }
 }
 
 /* ---------- controls ---------- */
@@ -381,13 +378,7 @@ input[type="range"].centered::-webkit-slider-runnable-track {
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------- tablet ---------- */
-@media (max-width: 1000px) {
-  .person-bar { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  .item-grid { grid-template-columns: 260px minmax(0, 1fr); }
-}
-
-/* ---------- phone: person bar becomes a bottom drawer, item controls fold ---------- */
+/* ---------- phone: person card becomes a bottom drawer, item controls fold ---------- */
 @media (max-width: 760px) {
   body { font-size: 14.5px; }
   .top { padding: 10px 16px; }
@@ -395,25 +386,27 @@ input[type="range"].centered::-webkit-slider-runnable-track {
   .page { padding: 14px 16px 0; gap: 14px; }
   .foot { padding-bottom: calc(var(--drawer-h, 200px) + 20px); }
   .card { padding: 14px 14px 16px; }
-  .card-head h2 { font-size: 16px; }
+  .card-head h2, .plot-head h2 { font-size: 16px; }
+  .view-seg button { font-size: 12px; padding: 6px 4px; }
 
-  .person-bar {
-    position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .plot-card { grid-row: 2; }
+
+  .person-card {
+    position: fixed; left: 0; right: 0; bottom: 0;
     z-index: 40;
-    grid-template-columns: minmax(0, 1fr); gap: 4px;
     border-radius: 16px 16px 0 0;
     border-width: 3px 0 0;
     padding: 8px 16px 10px;
     box-shadow: 0 -6px 24px rgba(0, 0, 0, .14);
   }
-  .person-bar .group-id { gap: 8px; }
-  .person-bar .gicon { width: 24px; height: 24px; border-radius: 7px; }
-  .person-bar .gicon svg { width: 15px; height: 15px; }
-  .person-bar .group-id h2 { font-size: 13.5px; }
-  .person-bar .group-sub, .person-bar .hint, .person-bar .ticks { display: none; }
-  .person-sliders { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .person-card .group-id { gap: 8px; margin-bottom: 2px; }
+  .person-card .gicon { width: 24px; height: 24px; border-radius: 7px; }
+  .person-card .gicon svg { width: 15px; height: 15px; }
+  .person-card .group-id h2 { font-size: 13.5px; }
+  .person-card .group-sub, .person-card .hint, .person-card .ticks { display: none; }
+  .person-card .ctl { margin-bottom: 0; }
 
-  .item-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .item-controls { padding: 12px 14px 4px; }
   .item-controls .group-id { margin-bottom: 8px; }
   .item-toggle { display: inline-flex; }

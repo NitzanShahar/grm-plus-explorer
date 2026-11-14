@@ -1,73 +1,30 @@
-# GRM+ Explorer
+# D-IRT Explorer
 
-An interactive web-based tool for exploring the Generalized Rating Model (GRM) and Graded Response Models in psychometrics. Built with React and designed for educational use.
+**Live demo: https://nitzanshahar.github.io/grm-plus-explorer/**
 
-## Features
+An interactive, single-page explainer for **Distilled-Item Response Theory (D-IRT, also written GRM+)**: a graded response model extended with two person-level parameters, response noise σ (which divides the item logit, flattening or sharpening every item for that person) and acquiescence ζ (a linear tilt of the log-probability "choice values" toward agreement, applied on the raw response scale after reverse-keyed items are flipped). Move the sliders for the trait ψ, noise σ and acquiescence ζ, and for an item's discrimination *a*, thresholds *b*, number of categories *K* and keying, and watch three live views: the category probabilities for one item, the item's expected-answer and category curves across ψ, and a simulated questionnaire showing how noise and acquiescence distort the sum score relative to the true trait. Settings are stored in the page URL, so a configuration can be shared as a link.
 
-- **Interactive Parameter Exploration**: Adjust psychometric parameters (ψ, σ, ζ) in real-time
-- **Visual Matrix Display**: See how parameter changes affect model predictions
-- **Multiple Question Formats**: Support for different questionnaire types
-- **Responsive Design**: Works on desktop and tablet devices
+## How it is built
 
-## Quick Start
+Plain HTML, CSS and JavaScript in [`docs/`](docs), with no build step and no third-party requests (no fonts, analytics or cookies). GitHub Pages serves the `docs/` folder of `main`.
 
-### Online (Easiest)
-Visit the live demo at: [GitHub Pages link will be here after deployment]
+- [`docs/model.js`](docs/model.js): the response model, a line-by-line port of the likelihood in the paper's Stan model (`GRM+_sigma_acq.stan`) and R simulator (`GRM+_sigma_acq.R`).
+- [`docs/app.js`](docs/app.js): controls, URL state and the SVG charts.
+- [`tests/`](tests): checks `model.js` against the reference R simulator.
 
-### Local Usage
-1. Download `grmplus-explorer.html`
-2. Open it in any modern web browser
-3. No installation or server required
+To run locally, serve the folder with any static server, e.g.
 
-## How to Use
+```bash
+python -m http.server 8000 --directory docs
+```
 
-1. **Setup Screen**: Configure your GRM model with initial parameters
-2. **Explore**: Use the sliders to adjust parameters and see real-time updates
-3. **Visualize**: View how changes affect the rating matrix
-4. **Compare**: Toggle base parameters to compare different configurations
+and open http://localhost:8000.
 
-## Browser Requirements
+## Checking the model against the reference R code
 
-- Modern browser (Chrome, Firefox, Safari, Edge)
-- JavaScript enabled
-- ~5MB free memory
+```bash
+Rscript tests/reference_probs.R path/to/GRM+_sigma_acq.R > ref.jsonl
+node tests/check-model.mjs ref.jsonl
+```
 
-## Educational Use
-
-This tool is designed for:
-- Teaching psychometric modeling
-- Understanding GRM behavior
-- Model parameter exploration
-- Student interactive learning
-
-## Technical Details
-
-- Built with React (via React CDN)
-- Single HTML file deployment
-- No external dependencies required
-- Pure JavaScript/CSS implementation
-
-## For Instructors
-
-To deploy to your students:
-
-1. **GitHub Pages** (Recommended)
-   - Push to GitHub
-   - Enable GitHub Pages in repository settings
-   - Share the pages URL with students
-
-2. **Direct File Share**
-   - Send `grmplus-explorer.html` directly
-   - Students open it in any browser
-
-3. **Web Server**
-   - Upload to any web server
-   - Share the URL
-
-## License
-
-Built with Claude AI design assistance.
-
-## Questions or Issues?
-
-For questions about using this tool, please contact your instructor.
+The R script evaluates the reference `generate_irt()` on 480 random item/person settings (K = 2…7, normal and reverse-keyed) and records its category probabilities; the Node script compares them with `model.js` (current maximum difference: 4e-16).
